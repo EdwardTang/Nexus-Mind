@@ -11,18 +11,23 @@ import (
 type DistanceFunc func(a, b []float32) float32
 
 // GetDistanceFunc returns the appropriate distance function for the given metric
-func GetDistanceFunc(metric models.DistanceMetric) (DistanceFunc, error) {
+func GetDistanceFunc(metric models.DistanceMetric) DistanceFunc {
 	switch metric {
 	case models.Cosine:
-		return CosineSimilarity, nil
+		return CosineDistance
 	case models.DotProduct:
-		return DotProduct, nil
+		// For DotProduct as a distance metric, we use 1-DotProduct
+		// This is consistent with how we convert similarity to distance
+		return func(a, b []float32) float32 {
+			return 1.0 - DotProduct(a, b)
+		}
 	case models.Euclidean:
-		return EuclideanDistance, nil
+		return EuclideanDistance
 	case models.Manhattan:
-		return ManhattanDistance, nil
+		return ManhattanDistance
 	default:
-		return nil, errors.New("unsupported distance metric")
+		// Default to cosine
+		return CosineDistance
 	}
 }
 
@@ -157,18 +162,15 @@ func CosineSimilarityNormalized(a, b []float32) float32 {
 }
 
 // BatchDistance calculates distances between one query vector and multiple vectors
-func BatchDistance(query []float32, vectors [][]float32, metric models.DistanceMetric) ([]float32, error) {
-	distFunc, err := GetDistanceFunc(metric)
-	if err != nil {
-		return nil, err
-	}
+func BatchDistance(query []float32, vectors [][]float32, metric models.DistanceMetric) []float32 {
+	distFunc := GetDistanceFunc(metric)
 	
 	results := make([]float32, len(vectors))
 	for i, vec := range vectors {
 		results[i] = distFunc(query, vec)
 	}
 	
-	return results, nil
+	return results
 }
 
 // IsHigherBetter returns true if a higher value is better for the given metric
@@ -211,4 +213,49 @@ func NormalizeScore(rawValue float32, metric models.DistanceMetric) float32 {
 	default:
 		return 0.5 // Default value if unknown metric
 	}
+}
+
+// Functions to support the test API
+
+// CosineDistance calculates the cosine distance from the similarity
+// Distance = 1 - Similarity
+func CosineDistance(a, b []float32) float32 {
+	return 1.0 - CosineSimilarity(a, b)
+}
+
+// Normalize creates a normalized copy of a vector
+func Normalize(v []float32) []float32 {
+	copy := make([]float32, len(v))
+	for i, val := range v {
+		copy[i] = val
+	}
+	NormalizeVector(copy)
+	return copy
+}
+
+// VectorLength calculates the L2 norm (Euclidean length) of a vector
+func VectorLength(v []float32) float32 {
+	var sumSquares float32
+	for _, val := range v {
+		sumSquares += val * val
+	}
+	return float32(math.Sqrt(float64(sumSquares)))
+}
+
+// BatchCosineDistance calculates cosine distances between query and multiple vectors
+func BatchCosineDistance(query []float32, vectors [][]float32) []float32 {
+	results := make([]float32, len(vectors))
+	for i, vec := range vectors {
+		results[i] = CosineDistance(query, vec)
+	}
+	return results
+}
+
+// BatchDotProduct calculates dot products between query and multiple vectors
+func BatchDotProduct(query []float32, vectors [][]float32) []float32 {
+	results := make([]float32, len(vectors))
+	for i, vec := range vectors {
+		results[i] = DotProduct(query, vec)
+	}
+	return results
 }

@@ -5,10 +5,12 @@ import (
 	"unsafe"
 )
 
-// isAVXSupported checks if the CPU supports AVX instructions
-// This is a simplified version - in production, you would use
-// a library like x/sys/cpu to properly detect CPU features
-var isAVXSupported = runtime.GOARCH == "amd64" || runtime.GOARCH == "386"
+// IsSIMDAvailable returns true if SIMD instructions are available on this platform
+func IsSIMDAvailable() bool {
+	// In production, you would use a library like x/sys/cpu to detect CPU features
+	// For testing purposes, we'll check if the architecture potentially supports SIMD
+	return runtime.GOARCH == "amd64" || runtime.GOARCH == "386"
+}
 
 // UseSimdAcceleration controls whether to use SIMD-accelerated distance calculations
 // This can be disabled for testing or debugging purposes
@@ -111,9 +113,42 @@ func batchCosineSimilaritySIMD(query []float32, vectors [][]float32) []float32 {
 // It chooses between scalar and SIMD implementations based on hardware capabilities
 func GetOptimizedDistanceFunc(useSimd bool, dimension int) DistanceFunc {
 	// A real implementation would have different optimized functions for different vector sizes
-	if useSimd && isAVXSupported && dimension >= 4 {
+	if useSimd && IsSIMDAvailable() && dimension >= 4 {
 		return CosineSimilaritySIMD
 	}
 	
 	return CosineSimilarity
+}
+
+// Function aliases for test compatibility
+// These provide the naming that our tests expect
+
+// SIMDCosineDistance is a SIMD-optimized version of cosine distance calculation
+func SIMDCosineDistance(a, b []float32) float32 {
+	// Convert similarity to distance
+	return 1.0 - CosineSimilaritySIMD(a, b)
+}
+
+// SIMDDotProduct is a SIMD-optimized version of dot product calculation
+func SIMDDotProduct(a, b []float32) float32 {
+	return DotProductSIMD(a, b)
+}
+
+// SIMDEuclideanDistance is a SIMD-optimized version of Euclidean distance calculation
+func SIMDEuclideanDistance(a, b []float32) float32 {
+	return EuclideanDistanceSIMD(a, b)
+}
+
+// SIMDBatchCosineDistance is a SIMD-optimized version of batch cosine distance calculation
+func SIMDBatchCosineDistance(query []float32, vectors [][]float32) []float32 {
+	// Calculate similarities
+	similarities := batchCosineSimilaritySIMD(query, vectors)
+	
+	// Convert similarities to distances
+	distances := make([]float32, len(similarities))
+	for i, sim := range similarities {
+		distances[i] = 1.0 - sim
+	}
+	
+	return distances
 }
