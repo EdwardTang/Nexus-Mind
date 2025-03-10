@@ -1,3 +1,3 @@
-module nexus-mind
+module course
 
-go 1.22
+go 1.15

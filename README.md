@@ -87,19 +87,77 @@ This project demonstrates expertise in:
 - Network protocol design and optimization
 - Comprehensive testing strategies for distributed systems
 
-## Getting Started
+## Quick Start Guide
+
+### Prerequisites
+- Docker and Docker Compose
+- Go 1.21+ (for development)
+- Git
+
+### Running with Docker (Recommended)
 
 ```bash
 # Clone the repository
-git clone https://github.com/yourusername/nexus-mind.git
+git clone https://github.com/EdwardTang/Nexus-Mind.git
 cd nexus-mind
 
-# Run tests
-cd src && go test -v ./raft
+# Start a 3-node cluster
+./run.sh start
 
-# Start a local cluster
-docker-compose up -d
+# Verify cluster status
+./run.sh status
+
+# Stop the cluster
+./run.sh stop
 ```
+
+### Development Setup
+
+```bash
+# Clone the repository
+git clone https://github.com/EdwardTang/Nexus-Mind.git
+cd nexus-mind
+
+# Build from source
+cd src && go build -o ../bin/nexus-mind-vector-store ./vectorstore
+
+# Run tests
+go test -v ./raft
+go test -v ./vectorstore
+
+# Run with race detection
+go test -race ./vectorstore
+```
+
+### Using the HTTP API
+
+Once your cluster is running, you can interact with it via the HTTP API:
+
+```bash
+# Store a vector
+curl -X POST "http://localhost:8080/vectors" \
+  -H "Content-Type: application/json" \
+  -d '{"id":"vec1","vector":[0.1, 0.2, 0.3, 0.4]}'
+
+# Retrieve a vector
+curl -X GET "http://localhost:8080/vectors/vec1"
+
+# Search similar vectors
+curl -X POST "http://localhost:8080/search" \
+  -H "Content-Type: application/json" \
+  -d '{"vector":[0.1, 0.2, 0.3, 0.4],"k":5}'
+```
+
+### Configuration Options
+
+Key environment variables for configuration:
+- `NODE_ID`: Unique identifier for the node
+- `HTTP_PORT`: Port for the HTTP API
+- `DIMENSIONS`: Vector dimensions (default: 128)
+- `DISTANCE_FUNCTION`: Similarity metric (cosine, euclidean, dot)
+- `REPLICATION_FACTOR`: Number of replicas for each vector
+
+See the [Configuration Guide](./docs/configuration.md) for advanced options.
 
 ## Future Directions
 
