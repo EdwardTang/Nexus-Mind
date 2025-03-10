@@ -1,0 +1,44 @@
+# Binaries for programs and plugins
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+
+# Test binary, built with `go test -c`
+*.test
+
+# Output of the go coverage tool
+*.out
+
+# Dependency directories
+vendor/
+pkg/
+
+# Binary files
+bin/
+tiny-raft-vector-store
+
+# IDE files
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# Log files
+*.log
+
+# OS-specific files
+.DS_Store
+Thumbs.db
+
+# Docker volumes
+/data/
+
+# Local configurations
+.env
+.env.local
+api.key
+.api.key.trimmed
+*-handin.tar.gz

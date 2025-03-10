@@ -1,0 +1,33 @@
+#!/usr/bin/env bash
+
+# Tiny-Raft Vector Store build checker
+# This script verifies that the codebase can be built and tested successfully
+
+set -eu
+
+check_vectorstore() {
+    echo "Checking vectorstore package..."
+    check_cmd cd src/vectorstore
+    check_cmd go test -c
+    echo "Vectorstore package build check successful"
+}
+
+check_cmd() {
+    if ! "$@" >/dev/null 2>&1; then
+        echo "Build check failed while trying to run the following command:" >&2
+        echo >&2
+        echo "$ $@" >&2
+        echo "  (cwd: ${PWD})" >&2
+        exit 1
+    fi
+}
+
+die() {
+    echo "$1" >&2
+    exit 1
+}
+
+# Main execution
+echo "Checking that the tiny-raft vector store builds correctly..."
+check_vectorstore
+echo "All build checks passed successfully!"
