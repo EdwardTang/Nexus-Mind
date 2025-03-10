@@ -1,34 +1,65 @@
-# This is the Makefile helping you submit the labs.
-# Just create 6.5840/api.key with your API key in it,
-# and submit your lab with the following command:
-#     $ make [lab1|lab2a|lab2b|lab2c|lab2d|lab3a|lab3b|lab4a|lab4b]
+.PHONY: build run test clean
 
-LABS=" lab1 lab2a lab2b lab2c lab2d lab3a lab3b lab4a lab4b "
+# Build the application
+build:
+	cd src && go build -o ../bin/nexus-mind
 
-%: check-%
-	@echo "Preparing $@-handin.tar.gz"
-	@if echo $(LABS) | grep -q " $@ " ; then \
-		echo "Tarring up your submission..." ; \
-		COPYFILE_DISABLE=1 tar cvzf $@-handin.tar.gz \
-			"--exclude=src/main/pg-*.txt" \
-			"--exclude=src/main/diskvd" \
-			"--exclude=src/mapreduce/824-mrinput-*.txt" \
-			"--exclude=src/mapreduce/5840-mrinput-*.txt" \
-			"--exclude=src/main/mr-*" \
-			"--exclude=mrtmp.*" \
-			"--exclude=src/main/diff.out" \
-			"--exclude=src/main/mrcoordinator" \
-			"--exclude=src/main/mrsequential" \
-			"--exclude=src/main/mrworker" \
-			"--exclude=*.so" \
-			Makefile src; \
-		if test `stat -c "%s" "$@-handin.tar.gz" 2>/dev/null || stat -f "%z" "$@-handin.tar.gz"` -ge 20971520 ; then echo "File exceeds 20MB."; rm $@-handin.tar.gz; exit; fi; \
-		echo "$@-handin.tar.gz successfully created. Please upload the tarball manually on Gradescope."; \
-	else \
-		echo "Bad target $@. Usage: make [$(LABS)]"; \
+# Run the application
+run: build
+	./bin/nexus-mind
+
+# Run all tests
+test:
+	cd src && go test -v ./...
+
+# Run tests with race detection
+test-race:
+	cd src && go test -race -v ./...
+
+# Run benchmarks
+bench:
+	cd src && go test -bench=. -benchmem ./...
+
+# Clean build artifacts
+clean:
+	rm -rf bin/
+	rm -f src/nexus-mind
+
+# Create directories if they don't exist
+dirs:
+	mkdir -p bin
+	mkdir -p data
+
+# Run tests for a specific package
+test-pkg:
+	@if [ -z "$(PKG)" ]; then \
+		echo "Usage: make test-pkg PKG=vector/index"; \
+		exit 1; \
 	fi
+	cd src && go test -v ./$(PKG)
 
-.PHONY: check-%
-check-%:
-	@echo "Checking that your submission builds correctly..."
-	@./.check-build git://g.csail.mit.edu/6.5840-golabs-2023 $(patsubst check-%,%,$@)
+# Format code
+fmt:
+	cd src && go fmt ./...
+
+# Check for lint issues
+lint:
+	cd src && go vet ./...
+
+# Initialize the project
+init: dirs
+
+# Help
+help:
+	@echo "Available targets:"
+	@echo "  build      - Build the application"
+	@echo "  run        - Run the application"
+	@echo "  test       - Run all tests"
+	@echo "  test-race  - Run tests with race detection"
+	@echo "  bench      - Run benchmarks"
+	@echo "  clean      - Clean build artifacts"
+	@echo "  dirs       - Create necessary directories"
+	@echo "  test-pkg   - Run tests for a specific package (e.g., make test-pkg PKG=vector/index)"
+	@echo "  fmt        - Format code"
+	@echo "  lint       - Check for lint issues"
+	@echo "  init       - Initialize the project"
