@@ -10,6 +10,9 @@ func TestSIMDAvailability(t *testing.T) {
 	// This just checks that our SIMD detection code works
 	if !IsSIMDAvailable() {
 		t.Logf("SIMD support not detected - SIMD tests will be skipped")
+		// Note: This is not an error or test failure. SIMD tests are designed
+		// to be skipped on platforms without SIMD support. The fallback to regular
+		// implementations ensures the code still works correctly.
 	} else {
 		t.Logf("SIMD support detected for %s/%s", runtime.GOOS, runtime.GOARCH)
 	}
