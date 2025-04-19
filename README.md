@@ -1,171 +1,130 @@
-# Nexus-Mind: Distributed Vector Database
 
-A lightweight, high-performance distributed vector database built on the Raft consensus algorithm, designed for horizontal scalability and fault tolerance.
+# Nexus‑Mind
 
-## Key Features
+> **TL;DR** – Nexus‑Mind is a *teaching* vector database: tiny, readable, and eager for contributions that push it from “toy” to “tool”.
 
-- **Raft-Based Consensus**: Leverages Raft for strong consistency guarantees across the cluster
-- **Dynamic Membership**: Seamless node addition/removal with automatic data rebalancing
-- **Consistent Hashing**: Token ring architecture ensures optimal data distribution
-- **Vector Operations**:
-  - Multi-dimensional vector storage and retrieval
-  - Similarity search with multiple distance functions (cosine, euclidean, dot product)
-  - Configurable replication factor for data durability
 
-## Architecture
-
-Nexus-Mind is built with a modular architecture focusing on scalability and resilience:
-
-```
-┌─────────────────┐     ┌─────────────────┐     ┌─────────────────┐
-│      Node 1     │     │      Node 2     │     │      Node 3     │
-│                 │     │                 │     │                 │
-│  ┌───────────┐  │     │  ┌───────────┐  │     │  ┌───────────┐  │
-│  │  Vector   │  │     │  │  Vector   │  │     │  │  Vector   │  │
-│  │   Store   │◄─┼─────┼─►│   Store   │◄─┼─────┼─►│   Store   │  │
-│  └───────────┘  │     │  └───────────┘  │     │  └───────────┘  │
-│        ▲        │     │        ▲        │     │        ▲        │
-│        │        │     │        │        │     │        │        │
-│  ┌───────────┐  │     │  ┌───────────┐  │     │  ┌───────────┐  │
-│  │  Raft     │◄─┼─────┼─►│  Raft     │◄─┼─────┼─►│  Raft     │  │
-│  │ Consensus │  │     │  │ Consensus │  │     │  │ Consensus │  │
-│  └───────────┘  │     │  └───────────┘  │     │  └───────────┘  │
-│        ▲        │     │        ▲        │     │        ▲        │
-│        │        │     │        │        │     │        │        │
-│  ┌───────────┐  │     │  ┌───────────┐  │     │  ┌───────────┐  │
-│  │ Token Ring│◄─┼─────┼─►│ Token Ring│◄─┼─────┼─►│ Token Ring│  │
-│  └───────────┘  │     │  └───────────┘  │     │  └───────────┘  │
-└─────────────────┘     └─────────────────┘     └─────────────────┘
-         ▲                      ▲                       ▲
-         │                      │                       │
-         └──────────────────────┼───────────────────────┘
-                                │
-                         ┌─────────────┐
-                         │   Client    │
-                         │    API      │
-                         └─────────────┘
-```
-
-### Control Plane Design
-
-The control plane implements sophisticated cluster management:
-
-- **Automated Gossip Protocol**: Efficient cluster state synchronization
-- **Consistent Hashing Ring**: Minimizes data movement during topology changes
-- **Dynamic Load Balancing**: Redistributes load based on node capacity
-- **Failure Detection**: Rapid detection and recovery from node failures
-
-### Data Plane Architecture
-
-- **Sharded Vector Storage**: Horizontal partitioning of vector data
-- **Efficient Transfer Protocol**: Minimizes network overhead during rebalancing
-- **Concurrent Request Handling**: Lock-free read paths for high throughput
-- **Optimized Query Routing**: Directed queries based on token ownership
-
-## Technical Implementation
-
-- **Language**: Go (chosen for concurrency model and performance)
-- **RPC Framework**: Custom implementation with failure injection for testing
-- **Serialization**: Optimized binary protocol for efficient network utilization
-- **Testing**: Comprehensive test suite with simulated network partitions
-
-## Performance Highlights
-
-- **Horizontal Scalability**: Near-linear throughput increase with additional nodes
-- **Low Latency**: P99 similarity search under 10ms for 1M vectors with 100 dimensions
-- **Fault Tolerance**: Zero downtime during node failures with 3+ node clusters
-- **Consistency**: Guaranteed read-your-writes consistency model
-
-## Development Experience
-
-This project demonstrates expertise in:
-
-- Distributed systems design and implementation
-- Consensus algorithms and fault tolerance
-- High-performance database internals
-- Cluster management and control plane engineering
-- Network protocol design and optimization
-- Comprehensive testing strategies for distributed systems
-
-## Quick Start Guide
-
-### Prerequisites
-- Docker and Docker Compose
-- Go 1.21+ (for development)
-- Git
-
-### Running with Docker (Recommended)
-
-```bash
-# Clone the repository
-git clone https://github.com/EdwardTang/Nexus-Mind.git
-cd nexus-mind
-
-# Start a 3-node cluster
-./run.sh start
-
-# Verify cluster status
-./run.sh status
-
-# Stop the cluster
-./run.sh stop
-```
-
-### Development Setup
-
-```bash
-# Clone the repository
-git clone https://github.com/EdwardTang/Nexus-Mind.git
-cd nexus-mind
-
-# Build from source
-cd src && go build -o ../bin/nexus-mind-vector-store ./vectorstore
-
-# Run tests
-go test -v ./raft
-go test -v ./vectorstore
-
-# Run with race detection
-go test -race ./vectorstore
-```
-
-### Using the HTTP API
-
-Once your cluster is running, you can interact with it via the HTTP API:
-
-```bash
-# Store a vector
-curl -X POST "http://localhost:8080/vectors" \
-  -H "Content-Type: application/json" \
-  -d '{"id":"vec1","vector":[0.1, 0.2, 0.3, 0.4]}'
-
-# Retrieve a vector
-curl -X GET "http://localhost:8080/vectors/vec1"
-
-# Search similar vectors
-curl -X POST "http://localhost:8080/search" \
-  -H "Content-Type: application/json" \
-  -d '{"vector":[0.1, 0.2, 0.3, 0.4],"k":5}'
-```
-
-### Configuration Options
-
-Key environment variables for configuration:
-- `NODE_ID`: Unique identifier for the node
-- `HTTP_PORT`: Port for the HTTP API
-- `DIMENSIONS`: Vector dimensions (default: 128)
-- `DISTANCE_FUNCTION`: Similarity metric (cosine, euclidean, dot)
-- `REPLICATION_FACTOR`: Number of replicas for each vector
-
-See the [Configuration Guide](./docs/configuration.md) for advanced options.
-
-## Future Directions
-
-- **Tiered Storage**: SSD/memory hybrid storage for cost optimization
-- **Query Planning**: Distributed query optimization for complex vector operations
-- **Extended Metrics**: Comprehensive telemetry for operational insights
-- **Advanced Sharding**: Additional sharding strategies beyond token ring
+*A tiny, hack‑friendly vector store that piggy‑backs on an educational Go Raft implementation. Perfect for experiments, **not** production (yet!).*
 
 ---
 
-Built by engineers who understand the challenges of distributed data systems at scale.
+## Why another vector DB?
+Nexus‑Mind started as a playground for learning:
+* **Consensus** – borrow the Raft labs code from MIT 6.824 for strong consistency.  
+* **Vector search internals** – write the simplest possible index first (`LinearIndex`), then iterate.
+* **Control‑plane exploration** – prototype how Raft (strong, synchronous) and Gossip (weak, asynchronous) can coexist without stepping on each other.
+
+If you just need a battle‑tested store, use Milvus, Qdrant or Weaviate.  
+If you want to tweak every line and watch a DB grow, read on.
+
+---
+
+## Features (April 2025)
+
+| Area | Status | Notes |
+|------|--------|-------|
+| **Vector CRUD & K‑NN** | ✅ Works (linear scan) | See `src/vector/index/linear.go` |
+| **HTTP API** | ✅ Basic `/collections/:name/query` | JSON; no auth |
+| **In‑memory persistence** | ✅ | Vectors lost on restart |
+| **Raft log replication** | 🛠 Library is there, **not wired into vector store** | From MIT 6.824 labs |
+| **Shard & KV layers** | 🛠 Present but demo‑only | `src/shard*` |
+| **Gossip membership** | 🚧 Planned | Design in `docs/ARCHITECTURE.md` |
+| **Advanced indexes (HNSW/IVF/PQ)** | 🚧 | Road‑mapped |
+| **Docker compose cluster** | 🚧 | `./run.sh` is a placeholder |
+
+---
+
+## Quick start (single node)
+
+```bash
+# Prereqs: Go 1.21+
+git clone https://github.com/EdwardTang/Nexus-Mind.git
+cd Nexus-Mind/src
+go run ./main.go
+```
+
+Open another terminal and try:
+
+```bash
+# Add a vector
+curl -X POST localhost:8080/vectors \
+     -H "Content-Type: application/json" \
+     -d '{"id":"vec1","vector":[0.1,0.2,0.3]}'
+
+# Similarity search (top‑5)
+curl -X POST localhost:8080/search \
+     -H "Content-Type: application/json" \
+     -d '{"vector":[0.1,0.2,0.3],"k":5}'
+```
+
+---
+
+## Architecture snapshot
+
+```
+Client ──HTTP/JSON──▶ Query Router
+                         │
+                         ▼
+                 +--------------+
+                 | Collection   |
+                 |  (in‑mem)    |
+                 +--------------+
+                         │
+                   +-----------+
+                   | Index     |  ← Linear scan today
+                   +-----------+
+```
+
+*Future*: multiple collections share a **token‑ring** sharding layer; each shard is a Raft group for strong writes. Gossip/ SWIM spreads node liveness and ring changes.
+
+Detailed design docs live in [`/docs`](docs):
+
+* `ARCHITECTURE.md` – 3‑layer blueprint (coordination, storage, query).  
+* `vector_store_layer.md` – ideas for HNSW & disk persistence.  
+* `ROADMAP.md` – milestone tracker.
+
+---
+
+## Code layout
+
+```text
+src/
+├── raft/          – Stand‑alone Raft library (leader election, log, snapshot)
+├── vector/
+│   ├── index/     – LinearIndex (baseline)
+│   ├── query/     – HTTP layer & filter DSL
+│   └── distance.go – SIMD‑backed metrics
+├── shard*         – Experiments with sharded KV on top of Raft
+└── main.go        – Demo server wiring everything together
+docs/ …            – design & progress notes
+```
+
+---
+
+## Roadmap highlights
+
+1. **Wire Raft into vector mutations** – WAL + replicas.
+2. **Replace linear scan with HNSW** – keep brute‑force as fall‑back.
+3. **Cluster bootstrap & gossip membership** – SWIM‑like heartbeat.
+4. **On‑disk segments** – mmap + background compaction.
+5. **Observability** – Prometheus metrics & Jaeger traces.
+
+See [`docs/ROADMAP.md`](docs/ROADMAP.md) for the full list.
+
+---
+
+## Contributing
+
+PRs and design sketches are welcome! Start with a good first issue:
+
+* `vector/index`: plug in any ANN algorithm you fancy.
+* `raft`: add snapshotting tests.
+* Docs proofreading.
+
+Please run `go test ./...` before opening a PR.
+
+---
+
+## License
+
+Apache 2.0 – see `LICENSE`.
